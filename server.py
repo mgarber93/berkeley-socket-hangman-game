@@ -1,7 +1,7 @@
 import random
 from socket import socket, SOL_SOCKET, SO_REUSEADDR
 from hangman import HangManGame
-from common import host, port
+from common import host, port, FixedLengthConnection
 
 MAX_CONNECTIONS = 1
 
@@ -17,6 +17,7 @@ def server():
         print(f"Listening on: {host} on port: {port}")
         server_socket.listen(MAX_CONNECTIONS)
         client_connection, address = server_socket.accept()
+        connection = FixedLengthConnection(client_connection)
         print(f"Connection by: ({client_connection}, {address})")
 
         random_word = random.choice(content)
@@ -24,23 +25,20 @@ def server():
         game = HangManGame(random_word)
 
         while not game.is_game_over():
-            client_connection.send(game.prompt().encode())
-            data = client_connection.recv(1024).decode()
-            if not data:
-                break
+            connection.send(game.prompt())
+            data = connection.receive()
             letter = str(data)
             if not game.is_valid_guess(letter):
-                client_connection.send(f'Invalid letter {letter}!'.encode())
+                connection.send(f'Invalid letter {letter}!')
             else:
                 game.guess(letter)
-                client_connection.send(game.prompt().encode())
 
         if game.has_found_all_letters():
             final_message = 'You win!'
         else:
             final_message = 'You lose!'
 
-        client_connection.send(final_message.encode())
+        connection.send(final_message)
 
 
 if __name__ == '__main__':

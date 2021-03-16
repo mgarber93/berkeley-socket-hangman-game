@@ -1,28 +1,31 @@
-import socket
-from common import host, port
+from socket import socket
+from common import host, port, FixedLengthConnection
 
 
 def read_and_print(connection):
     """Read from connection and print as utf-8"""
-    data = connection.recv(1024).decode()
+    data = connection.receive()
     print(data)
+    return data
 
 
 PROMPT = 'Guess a letter...\n>'
 
 
 def client():
-    """Create a client"""
-    with socket.socket() as client_socket:
+    """Create a game client"""
+    with socket() as client_socket:
         client_socket.connect((host, port))
+        connection = FixedLengthConnection(client_socket)
         print(f"Connected to: ({host}, {port})")
-        read_and_print(client_socket)
-        message = input(PROMPT)
+        message = ''
 
         while message != '/q':
-            client_socket.send(message.encode())
-            read_and_print(client_socket)
+            response = read_and_print(connection)
+            if response == 'You win!' or response == 'You lose!':
+                return
             message = input(PROMPT)
+            connection.send(message)
 
 
 if __name__ == '__main__':
