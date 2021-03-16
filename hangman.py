@@ -9,6 +9,8 @@ class HangManGame:
 
     def guess(self, letter):
         self.guesses.add(letter)
+        if self.word.find(letter) < 0:
+            self.wrong_choices_left -= 1
 
     def show_found(self):
         """Format word by replacing letters not found with _"""

@@ -48,3 +48,21 @@ class TestHangManGame(TestCase):
         )
         self.assertTrue(game.is_game_over())
         self.assertTrue(game.has_found_all_letters())
+
+    def test_guess_lose(self):
+        game = HangManGame('networks')
+        game.guess('a')
+        game.guess('z')
+        game.guess('i')
+        game.guess('y')
+        actual = game.prompt()
+        self.assertEqual(
+            actual,
+            create_assertion(
+                '________',
+                {'a', 'z', 'i', 'y'},
+                -1
+            )
+        )
+        self.assertTrue(game.is_game_over())
+        self.assertFalse(game.has_found_all_letters())
